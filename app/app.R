@@ -30,13 +30,12 @@ server <- function(input, output, session) {
 
   rv <- reactiveValues(
     state = "pretest",
-    question_num = 1,
-    responses = data.frame(),
+    participant_info = NULL,
     test_start = NULL,
-    question_start = NULL
+    question_start = NULL,
+    question_num = 1,
+    responses = data.frame()
   )
-
-  participant_info <- reactiveVal(NULL)
 
   # Ending test
   end_test <- function() {
@@ -54,6 +53,8 @@ server <- function(input, output, session) {
       rv$responses,
       paste0(
         "results/",
+        gsub("[^[:alnum:]]", "", rv$participant_info$name), # Remove all special characters if any
+        "_",
         format(Sys.time(), "%Y-%m-%d_%H-%M-%S_"),
         feedback,
         ".csv"
@@ -64,10 +65,10 @@ server <- function(input, output, session) {
     num_answers <- nrow(rv$responses)
     num_correct_answers <- sum(rv$responses$correct)
     summary <- data.frame(
-      name = participant_info()$name,
-      email = participant_info()$email,
-      gender = participant_info()$gender,
-      discipline = participant_info()$discipline,
+      name = rv$participant_info$name,
+      email = rv$participant_info$email,
+      gender = rv$participant_info$gender,
+      discipline = rv$participant_info$discipline,
       feedback = feedback,
       num_answers = num_answers,
       num_correct_answers = num_correct_answers,
@@ -192,12 +193,12 @@ server <- function(input, output, session) {
     rv$test_start <- Sys.time()
 
     # Store participant information
-    participant_info(list(
+    rv$participant_info <- list(
       name = input$participant_name,
       email = input$participant_email,
       gender = input$participant_gender,
       discipline = input$participant_discipline
-    ))
+    )
 
     # Record question start time
     rv$question_start <- Sys.time()
