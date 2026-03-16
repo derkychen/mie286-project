@@ -32,6 +32,7 @@ server <- function(input, output, session) {
     state = "pretest",
     question_num = 1,
     responses = data.frame(),
+    test_start = NULL,
     question_start = NULL
   )
 
@@ -40,6 +41,7 @@ server <- function(input, output, session) {
   # Ending test
   end_test <- function() {
     rv$state <- "posttest"
+    time <- as.numeric(difftime(Sys.time(), rv$test_start, units = "secs"))
 
     # Stop timer
     runjs("endTestPhase();")
@@ -61,7 +63,6 @@ server <- function(input, output, session) {
     # Store summary in data.csv
     num_answers <- nrow(rv$responses)
     num_correct_answers <- sum(rv$responses$correct)
-    time <- sum(rv$responses$response_time)
     summary <- data.frame(
       name = participant_info()$name,
       email = participant_info()$email,
@@ -188,6 +189,7 @@ server <- function(input, output, session) {
     )
 
     rv$state <- "test"
+    rv$test_start <- Sys.time()
 
     # Store participant information
     participant_info(list(

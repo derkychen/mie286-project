@@ -7,7 +7,7 @@ function startTestPhase() {
 
   // Start timer
   startTime = Date.now();
-  timerInterval = setInterval(updateTimer, 1000);
+  timerInterval = setInterval(updateTimer, 10);
   updateTimer();
 }
 
