@@ -99,7 +99,7 @@ server <- function(input, output, session) {
           p(paste(
             "You will be presented with",
             nrow(questions),
-            "mental addition, subtraction, multiplication, and division problems of various difficulties."
+            "mental addition, subtraction, multiplication, and division problems for 2 minutes."
           )),
           p(
             "This interface can only be navigated with your keyboard. Press the Enter/Return key to submit your answer. You cannot move to a previous question."
