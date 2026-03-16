@@ -14,18 +14,19 @@ git clone https://github.com/derkychen/mie286-project.git
 
 2. Open your R console inside the project directory, and run
 
-```sh
+```R
 install.packages("renv") # If you do not have renv
 renv::restore() # Restore the packages from renv.lock
 ```
 
 to install dependencies
 
-## Usage
+## Run the App
 
 Open your R console inside the project directory, and run
 
-```sh
-library(shiny)
-runApp("app")
+```R
+source("app/generate_questions.R") # Generate questions used by app
+library(shiny) # Load and attach Shiny
+runApp("app") # Run the app
 ```
