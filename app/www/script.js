@@ -7,8 +7,8 @@ function startTestPhase() {
 
   // Start timer
   startTime = Date.now();
-  timerInterval = setInterval(updateDisplay, 1000);
-  updateDisplay();
+  timerInterval = setInterval(updateTimer, 1000);
+  updateTimer();
 }
 
 function endTestPhase() {
@@ -18,7 +18,8 @@ function endTestPhase() {
   clearInterval(timerInterval);
 }
 
-function updateDisplay() {
+// Update the displayed timer
+function updateTimer() {
   var elapsed = Date.now() - startTime;
   var remaining = Math.max(0, totalDuration - elapsed);
 
@@ -32,11 +33,11 @@ function updateDisplay() {
     (seconds < 10 ? "0" : "") +
     seconds;
 
-  var timerEl = document.getElementById("js_timer");
+  var timerEl = document.getElementById("timer");
   if (timerEl) timerEl.innerHTML = display;
 
   if (remaining <= 0) {
-    endTest();
+    endTestPhase();
     Shiny.setInputValue("time_up", Date.now(), { priority: "event" });
   }
 }
@@ -47,14 +48,15 @@ setInterval(function () {
 
   var input = document.getElementById("user_ans");
   if (input && document.activeElement !== input) input.focus();
-}, 1);
+}, 50);
 
+// Key filtering during test
 $(document).on("keydown", function (e) {
   if (!duringTest) return;
   var input = $("#user_ans");
 
-  // Only allow keyboard input for numbers and Enter during test
-  if ((e.key <= "0" || e.key >= "9") && e.key !== "Enter") e.preventDefault();
+  // Only allow character input for numbers
+  if (e.key.length === 1 && (e.key < 0 || e.key > "9")) e.preventDefault();
 
   // Submit when Enter key pressed on non-empty input
   if (e.key === "Enter" && input.val() !== "") {
