@@ -3,7 +3,7 @@ library(bslib)
 library(readr)
 library(shinyjs)
 
-# Read questions
+# Read questions (NOTE: questions.csv must exist)
 questions <- read_csv("questions.csv")
 
 ui <- page_fillable(
@@ -29,15 +29,17 @@ server <- function(input, output, session) {
   print(paste("Feedback:", feedback))
 
   rv <- reactiveValues(
-    state = "instructions",
-    qnum = 1,
+    state = "pretest",
+    question_num = 1,
     responses = data.frame(),
     question_start = NULL
   )
 
+  participant_info <- reactiveVal(NULL)
+
   # Ending test
   end_test <- function() {
-    rv$state <- "done"
+    rv$state <- "posttest"
 
     # Stop timer
     runjs("endTestPhase();")
@@ -55,29 +57,98 @@ server <- function(input, output, session) {
         ".csv"
       )
     )
+
+    # Store summary in data.csv
+    num_answers <- nrow(rv$responses)
+    num_correct_answers <- sum(rv$responses$correct)
+    time <- sum(rv$responses$response_time)
+    summary <- data.frame(
+      name = participant_info()$name,
+      email = participant_info()$email,
+      gender = participant_info()$gender,
+      discipline = participant_info()$discipline,
+      feedback = feedback,
+      num_answers = num_answers,
+      num_correct_answers = num_correct_answers,
+      time = time,
+      speed = if (time > 0) num_answers / time else NA_real_,
+      accuracy = if (num_answers > 0) {
+        num_correct_answers / num_answers
+      } else {
+        NA_real_
+      }
+    )
+    write.table(
+      summary,
+      file = "data.csv",
+      sep = ",",
+      append = file.exists("data.csv"),
+      col.names = !file.exists("data.csv"),
+      row.names = FALSE
+    )
   }
 
-  # Main UI pages (instructions -> test -> done)
+  # Main UI pages (pretest -> test -> posttest)
   output$ui_content <- renderUI({
-    if (rv$state == "instructions") {
+    if (rv$state == "pretest") {
       tagList(
         h1("Mental Arithmetic Test"),
         div(
+          p(paste(
+            "You will be presented with",
+            nrow(questions),
+            "mental addition, subtraction, multiplication, and division problems of various difficulties."
+          )),
           p(
-            "You will be presented with 50 mental addition (+), subtraction (-), multiplication (*), and division (/) problems of various difficulties."
+            "Enter digits with the number row. Use backspace to clear the last entered digit. Press the Enter/Return key to submit your answer."
           ),
           p("To the best of your ability, answer as many questions correctly."),
-          class = "instructions"
+          class = "instructions-text"
         ),
-        actionButton("start", "Begin")
+        layout_columns(
+          col_widths = c(6, 6),
+          textInput("participant_name", "Name"),
+          textInput("participant_email", "Email"),
+          selectInput(
+            "participant_gender",
+            "Gender",
+            choices = c(
+              "Select..." = "",
+              "Man",
+              "Woman",
+              "Other",
+              "Prefer not to say"
+            )
+          ),
+          selectInput(
+            "participant_discipline",
+            "Discipline",
+            choices = c(
+              "Select..." = "",
+              "Engineering Science",
+              "Chemical Engineering",
+              "Civil Engineering",
+              "Electrical & Computer Engineering",
+              "Industrial Engineering",
+              "Materials Engineering",
+              "Mechanical Engineering",
+              "Mineral Engineering"
+            )
+          ),
+          class = "participant-info-section"
+        ),
+        actionButton("start", "Start")
       )
     } else if (rv$state == "test") {
       tagList(
-        div(paste("Question", rv$qnum, "of 50"), class = "progress-text"),
-        div(questions$question[rv$qnum], class = "question-text"),
         div(
-          textInput("user_ans", label = NULL),
-          class = "centered-input-wrap"
+          paste("Question", rv$question_num, "of", nrow(questions)),
+          class = "progress-text"
+        ),
+        div(questions$question[rv$question_num], class = "question-text"),
+        div(
+          textInput("user_ans", label = NULL), # Text instead of numeric input for less clutter and more control over behaviour
+          class = "input-wrap"
         ),
       )
     } else {
@@ -90,9 +161,41 @@ server <- function(input, output, session) {
     }
   })
 
+  # Enable 'Start' building when all input fields are filled
+  observe({
+    is_filled <- function(x) {
+      !is.null(x) && nzchar(trimws(x))
+    }
+    ready <-
+      is_filled(input$participant_name) &&
+      is_filled(input$participant_email) &&
+      is_filled(input$participant_gender) &&
+      is_filled(input$participant_discipline)
+    if (ready) {
+      enable("start")
+    } else {
+      disable("start")
+    }
+  })
+
   # On test start
   observeEvent(input$start, {
+    req(
+      nzchar(trimws(input$participant_name)),
+      nzchar(trimws(input$participant_email)),
+      nzchar(input$participant_gender),
+      nzchar(input$participant_discipline)
+    )
+
     rv$state <- "test"
+
+    # Store participant information
+    participant_info(list(
+      name = input$participant_name,
+      email = input$participant_email,
+      gender = input$participant_gender,
+      discipline = input$participant_discipline
+    ))
 
     # Record question start time
     rv$question_start <- Sys.time()
@@ -109,13 +212,13 @@ server <- function(input, output, session) {
   })
 
   # On submission of an answer
-  observeEvent(input$submit_val, {
+  observeEvent(input$submission, {
     req(rv$state == "test")
 
     # Store question data
-    question <- questions$question[rv$qnum]
-    answer = questions$answer[rv$qnum]
-    submission = input$submit_val
+    question <- questions$question[rv$question_num]
+    answer <- questions$answer[rv$question_num]
+    submission <- as.numeric(input$submission)
     response_time <- as.numeric(difftime(
       Sys.time(),
       rv$question_start,
@@ -124,7 +227,7 @@ server <- function(input, output, session) {
     rv$responses <- rbind(
       rv$responses,
       data.frame(
-        qnum = rv$qnum,
+        question_num = rv$question_num,
         question = question,
         answer = answer,
         submission = submission,
@@ -134,8 +237,8 @@ server <- function(input, output, session) {
     )
 
     # Move on to next question unless at the last question
-    if (rv$qnum < nrow(questions)) {
-      rv$qnum <- rv$qnum + 1
+    if (rv$question_num < nrow(questions)) {
+      rv$question_num <- rv$question_num + 1
       rv$question_start <- Sys.time()
     } else {
       end_test()
