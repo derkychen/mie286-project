@@ -100,7 +100,7 @@ server <- function(input, output, session) {
             "mental addition, subtraction, multiplication, and division problems of various difficulties."
           )),
           p(
-            "Enter digits with the number row. Use backspace to clear the last entered digit. Press the Enter/Return key to submit your answer."
+            "This interface can only be navigated with your keyboard. Press the Enter/Return key to submit your answer. You cannot move to a previous question."
           ),
           p("To the best of your ability, answer as many questions correctly."),
           class = "instructions-text"
