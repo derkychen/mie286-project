@@ -1,6 +1,6 @@
 let duringTest = false;
 var startTime, timerInterval;
-var totalDuration = 2 * 60 * 1000;
+var totalDuration = 3 * 60 * 1000;
 
 function startTestPhase() {
   duringTest = true;
