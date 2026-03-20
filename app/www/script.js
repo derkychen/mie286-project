@@ -56,8 +56,18 @@ $(document).on("keydown", function (e) {
   var input = $("#user_ans");
 
   // Only allow character input for numbers
-  if (e.key.length === 1 && (e.key < 0 || e.key > "9")) e.preventDefault();
-
+  if (
+    !(
+      (e.key >= "0" && e.key <= "9") ||
+      e.key === "Backspace" ||
+      e.key === "ArrowLeft" ||
+      e.key === "ArrowRight" ||
+      e.key === "ArrowUp" ||
+      e.key === "ArrowDown"
+    )
+  ) {
+    e.preventDefault();
+  }
   // Submit when Enter key pressed on non-empty input
   if (e.key === "Enter" && input.val() !== "") {
     Shiny.setInputValue("submission", input.val(), { priority: "event" });
