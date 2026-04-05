@@ -11,7 +11,7 @@ plot_and_save <- function(
   plot_function,
   width = 500,
   height = 500,
-  pointsize = 14
+  pointsize = 18
 ) {
   dev.new()
   plot_function()
@@ -20,7 +20,7 @@ plot_and_save <- function(
     filename = filename,
     width = width,
     height = height,
-    pointsize = pointsize,
+    pointsize = pointsize
   )
   dev.off()
 }
