@@ -5,10 +5,30 @@ library(dplyr)
 df <- read_csv("app/data.csv")
 df$feedback <- factor(df$feedback, levels = c("no_timer", "timer"))
 
+# Plot and save a figure
+plot_and_save <- function(
+  filename,
+  plot_function,
+  width = 500,
+  height = 500,
+  pointsize = 14
+) {
+  dev.new()
+  plot_function()
+  dev.copy(
+    png,
+    filename = filename,
+    width = width,
+    height = height,
+    pointsize = pointsize,
+  )
+  dev.off()
+}
+
 
 # General Statistics and Plotting ----------------------------------------------
 
-# Sumarry table for both feedback groups
+# Summary table for both feedback groups
 print(
   df %>%
     group_by(feedback) %>%
@@ -22,125 +42,84 @@ print(
 )
 
 # Box plots for speed and accuracy by feedback type
-dev.new()
-par(mfrow = c(1, 2))
-boxplot(
-  speed ~ feedback,
-  data = df,
-  main = "Speed by Feedback Group",
-  xlab = "Feedback",
-  ylab = "Speed"
-)
-boxplot(
-  accuracy ~ feedback,
-  data = df,
-  main = "Accuracy by Feedback Group",
-  xlab = "Feedback",
-  ylab = "Accuracy"
-)
-par(mfrow = c(1, 1))
-dev.copy(
-  png,
-  filename = "images/boxplots.png",
-  width = 500,
-  height = 500,
-  pointsize = 18
-)
-dev.off()
+plot_and_save("images/speedboxplot.png", function() {
+  par(mfrow = c(1, 2))
+  boxplot(
+    speed ~ feedback,
+    data = df,
+    main = "Speed by Feedback Group",
+    xlab = "Feedback",
+    ylab = "Speed"
+  )
+  boxplot(
+    accuracy ~ feedback,
+    data = df,
+    main = "Accuracy by Feedback Group",
+    xlab = "Feedback",
+    ylab = "Accuracy"
+  )
+  par(mfrow = c(1, 1))
+})
 
 # Scatterplot of accuracy vs. speed
-dev.new()
-plot(
-  df$speed,
-  df$accuracy,
-  xlab = "Speed",
-  ylab = "Accuracy",
-  main = "Accuracy vs. Speed",
-  pch = 19,
-  col = ifelse(df$feedback == "timer", "red", "blue")
-)
-legend(
-  "bottomleft",
-  legend = levels(df$feedback),
-  col = c("blue", "red"),
-  pch = 19
-)
-dev.copy(
-  png,
-  filename = "images/scatterplot.png",
-  width = 500,
-  height = 500,
-  pointsize = 18
-)
-dev.off()
-
+plot_and_save("images/scatterplot.png", function() {
+  plot(
+    df$speed,
+    df$accuracy,
+    xlab = "Speed",
+    ylab = "Accuracy",
+    main = "Accuracy vs. Speed",
+    pch = 19,
+    col = ifelse(df$feedback == "timer", "red", "blue")
+  )
+  legend(
+    "bottomleft",
+    legend = levels(df$feedback),
+    col = c("blue", "red"),
+    pch = 19
+  )
+})
 
 # Normal QQ Plots and Shapiro-Wilk Tests ---------------------------------------
 
 # Speed for no timer
-dev.new()
-qqnorm(df$speed[df$feedback == "no_timer"], main = "QQ Plot: Speed (no_timer)")
-qqline(df$speed[df$feedback == "no_timer"])
-
-dev.copy(
-  png,
-  filename = "images/qqspeednotimer.png",
-  width = 500,
-  height = 500,
-  pointsize = 18
-)
-dev.off()
+plot_and_save("images/qqspeednotimer.png", function() {
+  qqnorm(
+    df$speed[df$feedback == "no_timer"],
+    main = "QQ Plot: Speed (no_timer)"
+  )
+  qqline(df$speed[df$feedback == "no_timer"])
+})
 
 print(shapiro.test(df$speed[df$feedback == "no_timer"]))
 
 # Speed for timer
-dev.new()
-qqnorm(df$speed[df$feedback == "timer"], main = "QQ Plot: Speed (timer)")
-qqline(df$speed[df$feedback == "timer"])
-
-dev.copy(
-  png,
-  filename = "images/qqspeedtimer.png",
-  width = 500,
-  height = 500,
-  pointsize = 18
-)
-dev.off()
+plot_and_save("images/qqspeedtimer.png", function() {
+  qqnorm(df$speed[df$feedback == "timer"], main = "QQ Plot: Speed (timer)")
+  qqline(df$speed[df$feedback == "timer"])
+})
 
 print(shapiro.test(df$speed[df$feedback == "timer"]))
 
 # Accuracy for no timer
-dev.new()
-qqnorm(
-  df$accuracy[df$feedback == "no_timer"],
-  main = "QQ Plot: Accuracy (no_timer)"
-)
-qqline(df$accuracy[df$feedback == "no_timer"])
-
-dev.copy(
-  png,
-  filename = "images/qqaccuracynotimer.png",
-  width = 500,
-  height = 500,
-  pointsize = 18
-)
-dev.off()
+plot_and_save("images/qqaccuracynotimer.png", function() {
+  qqnorm(
+    df$accuracy[df$feedback == "no_timer"],
+    main = "QQ Plot: Accuracy (no_timer)"
+  )
+  qqline(df$accuracy[df$feedback == "no_timer"])
+})
 
 print(shapiro.test(df$accuracy[df$feedback == "no_timer"]))
 
 # Accuracy for timer
-dev.new()
-qqnorm(df$accuracy[df$feedback == "timer"], main = "QQ Plot: Accuracy (timer)")
-qqline(df$accuracy[df$feedback == "timer"])
-
-dev.copy(
-  png,
-  filename = "images/qqaccuracytimer.png",
-  width = 500,
-  height = 500,
-  pointsize = 18
-)
-dev.off()
+plot_and_save("images/qqaccuracytimer.png", function() {
+  qqnorm(
+    df$accuracy[df$feedback == "timer"],
+    main = "QQ Plot: Accuracy (timer)"
+  )
+  qqline(df$accuracy[df$feedback == "timer"])
+})
 
 print(shapiro.test(df$accuracy[df$feedback == "timer"]))
 
