@@ -45,3 +45,11 @@ source("app/generate_questions.R") # Generate questions used by app
 library(shiny) # Load and attach Shiny
 runApp("app") # Run the app
 ```
+
+## Run the Analyses
+
+Open your R console inside the project directory, and run
+
+```R
+source("analyses.R")
+```
