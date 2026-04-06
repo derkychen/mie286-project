@@ -42,19 +42,19 @@ print(
 )
 
 # Box plots for speed and accuracy by feedback type
-plot_and_save("images/speedboxplot.png", function() {
+plot_and_save("images/boxplot.png", function() {
   par(mfrow = c(1, 2))
   boxplot(
     speed ~ feedback,
     data = df,
-    main = "Speed by Feedback Group",
+    main = "Speed by Feedback Type",
     xlab = "Feedback",
     ylab = "Speed"
   )
   boxplot(
     accuracy ~ feedback,
     data = df,
-    main = "Accuracy by Feedback Group",
+    main = "Accuracy by Feedback Type",
     xlab = "Feedback",
     ylab = "Accuracy"
   )
@@ -73,7 +73,7 @@ plot_and_save("images/scatterplot.png", function() {
     col = ifelse(df$feedback == "timer", "red", "blue")
   )
   legend(
-    "bottomleft",
+    "bottomright",
     legend = levels(df$feedback),
     col = c("blue", "red"),
     pch = 19
