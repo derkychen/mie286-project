@@ -3,6 +3,7 @@ library(dplyr)
 
 # Load data, make feedback type a factor
 df <- read_csv("app/data.csv")
+df$gender <- factor(df$gender, levels = c("Man", "Woman"))
 df$feedback <- factor(df$feedback, levels = c("no_timer", "timer"))
 
 # Plot and save a figure
@@ -42,7 +43,44 @@ print(
 )
 
 # Box plots for speed and accuracy by feedback type
-plot_and_save("images/boxplot.png", function() {
+plot_and_save(
+  "images/genderboxplot.png",
+  function() {
+    par(mfrow = c(1, 4))
+    boxplot(
+      speed ~ feedback,
+      data = subset(df, gender == "Man"),
+      main = "Speed by Feedback Type for Men",
+      xlab = "Feedback",
+      ylab = "Speed"
+    )
+    boxplot(
+      accuracy ~ feedback,
+      data = subset(df, gender == "Man"),
+      main = "Accuracy by Feedback Type for Men",
+      xlab = "Feedback",
+      ylab = "Accuracy"
+    )
+    boxplot(
+      speed ~ feedback,
+      data = subset(df, gender == "Woman"),
+      main = "Speed by Feedback Type for Women",
+      xlab = "Feedback",
+      ylab = "Speed"
+    )
+    boxplot(
+      accuracy ~ feedback,
+      data = subset(df, gender == "Woman"),
+      main = "Accuracy by Feedback Type for Women",
+      xlab = "Feedback",
+      ylab = "Accuracy"
+    )
+  },
+  width = 1000
+)
+
+# Box plots for speed and accuracy by feedback type
+plot_and_save("images/feedbackboxplot.png", function() {
   par(mfrow = c(1, 2))
   boxplot(
     speed ~ feedback,
@@ -58,7 +96,6 @@ plot_and_save("images/boxplot.png", function() {
     xlab = "Feedback",
     ylab = "Accuracy"
   )
-  par(mfrow = c(1, 1))
 })
 
 # Scatterplot of accuracy vs. speed
