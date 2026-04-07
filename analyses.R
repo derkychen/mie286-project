@@ -1,7 +1,7 @@
 library(readr)
 library(dplyr)
 
-# Load data, make feedback type a factor
+# Load data, make gender and feedback type factors
 df <- read_csv("app/data.csv")
 df$gender <- factor(df$gender, levels = c("Man", "Woman"))
 df$feedback <- factor(df$feedback, levels = c("no_timer", "timer"))
@@ -119,7 +119,7 @@ plot_and_save("images/scatterplot.png", function() {
 
 # Normal QQ Plots and Shapiro-Wilk Tests ---------------------------------------
 
-# Speed for no timer
+# Speed for no_timer
 plot_and_save("images/qqspeednotimer.png", function() {
   qqnorm(
     df$speed[df$feedback == "no_timer"],
@@ -138,7 +138,7 @@ plot_and_save("images/qqspeedtimer.png", function() {
 
 print(shapiro.test(df$speed[df$feedback == "timer"]))
 
-# Accuracy for no timer
+# Accuracy for no_timer
 plot_and_save("images/qqaccuracynotimer.png", function() {
   qqnorm(
     df$accuracy[df$feedback == "no_timer"],
@@ -174,16 +174,18 @@ print(t.test(accuracy ~ feedback, data = df, var.equal = TRUE))
 
 # Speed-Accuracy Correlation ---------------------------------------------------
 
-# Correlation for no timer
+# Test for negative correlation for no_timer
 print(cor.test(
   df$speed[df$feedback == "no_timer"],
   df$accuracy[df$feedback == "no_timer"],
-  method = "pearson"
+  method = "pearson",
+  alternative = "less"
 ))
 
-# Correlation for timer
+# Test for negative correlation for timer
 print(cor.test(
   df$speed[df$feedback == "timer"],
   df$accuracy[df$feedback == "timer"],
-  method = "pearson"
+  method = "pearson",
+  alternative = "less"
 ))
